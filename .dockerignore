@@ -1,0 +1,6 @@
+google-chrome/
+options.json
+__pycache__/
+tests/
+.git/
+havnc/
