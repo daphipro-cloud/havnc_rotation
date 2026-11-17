@@ -66,12 +66,44 @@ class Controller:
                     if orientation == self._default_orientation
                     else "left"
                 )
-                self._command_runner(
-                    ["xrandr", "--output", "screen", "--rotate", rotation],
+                output_result = self._command_runner(
+                    ["xrandr", "--query"],
                     check=True,
                     capture_output=True,
                     text=True,
                 )
+                outputs = []
+                for line in output_result.stdout.splitlines():
+                    fields = line.split()
+                    if len(fields) >= 2 and fields[1] == "connected":
+                        outputs.append(fields[0])
+                if len(outputs) != 1:
+                    raise RuntimeError(
+                        "Could not identify the active XRandR output: "
+                        f"{output_result.stdout!r} {output_result.stderr!r}"
+                    )
+
+                try:
+                    self._command_runner(
+                        [
+                            "xrandr",
+                            "--output",
+                            outputs[0],
+                            "--rotate",
+                            rotation,
+                        ],
+                        check=True,
+                        capture_output=True,
+                        text=True,
+                    )
+                except subprocess.CalledProcessError as error:
+                    LOGGER.error(
+                        "Could not rotate XRandR output %s (exit %s): %s",
+                        outputs[0],
+                        error.returncode,
+                        (error.stderr or error.stdout).strip(),
+                    )
+                    raise
                 self._orientation = orientation
 
             if not self._browser_is_active():

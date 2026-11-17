@@ -24,7 +24,6 @@ RUN apk add --no-cache \
 		tzdata \
 		websockify \
 		xrandr \
-		xvfb \
 		&& cp "/usr/share/zoneinfo/$TZ" /etc/localtime \
 		&& echo "$TZ" > /etc/timezone
 

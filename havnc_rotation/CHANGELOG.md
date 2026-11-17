@@ -1,5 +1,10 @@
 # Changelog
 
+# 1.1.1
+
+- Replace Xvfb with TigerVNC Xvnc, which supports the requested screen rotation.
+- Detect the active RandR output and include command details in rotation errors.
+
 # 1.1.0
 
 - Restore the local app from the upstream HAVNC source.
