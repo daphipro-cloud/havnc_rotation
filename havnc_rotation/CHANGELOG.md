@@ -1,5 +1,10 @@
 # Changelog
 
+# 1.1.3
+
+- Include the viewport scaling script in the built image.
+- Restore Xvfb with x0vncserver because TigerVNC Xvnc cannot rotate the display.
+
 # 1.1.2
 
 - Scale the noVNC canvas to fit the available viewport after orientation or

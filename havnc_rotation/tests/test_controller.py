@@ -17,7 +17,7 @@ class FakeCommandRunner:
         if command == ["xrandr", "--query"]:
             return SimpleNamespace(
                 stdout="Screen 0: minimum 1 x 1, current 768 x 1024\n"
-                "VNC-0 connected 768x1024+0+0\n"
+                "screen connected 768x1024+0+0\n"
             )
         status_command = [
             "supervisorctl",
@@ -71,7 +71,7 @@ class ControllerTests(unittest.TestCase):
         self.controller.record_activity("landscape")
 
         self.assertIn(
-            ["xrandr", "--output", "VNC-0", "--rotate", "left"],
+            ["xrandr", "--output", "screen", "--rotate", "left"],
             self.runner.calls,
         )
         self.assertIn(
@@ -89,7 +89,7 @@ class ControllerTests(unittest.TestCase):
         self.controller.record_activity("portrait")
 
         self.assertIn(
-            ["xrandr", "--output", "VNC-0", "--rotate", "normal"],
+            ["xrandr", "--output", "screen", "--rotate", "normal"],
             self.runner.calls,
         )
 
@@ -153,7 +153,7 @@ class ControllerTests(unittest.TestCase):
 
             self.assertEqual(response.status, 204)
             self.assertIn(
-                ["xrandr", "--output", "VNC-0", "--rotate", "left"],
+                ["xrandr", "--output", "screen", "--rotate", "left"],
                 self.runner.calls,
             )
             self.assertIn(

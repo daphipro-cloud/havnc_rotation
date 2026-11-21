@@ -24,6 +24,7 @@ RUN apk add --no-cache \
 		tzdata \
 		websockify \
 		xrandr \
+		xvfb \
 		&& cp "/usr/share/zoneinfo/$TZ" /etc/localtime \
 		&& echo "$TZ" > /etc/timezone
 
@@ -32,6 +33,7 @@ RUN git clone --depth 1 --branch "$NOVNC_VERSION" https://github.com/novnc/noVNC
 	&& apk del git tzdata
 
 COPY index.html /opt/novnc/index.html
+COPY viewport_fit.js /opt/novnc/viewport_fit.js
 COPY config /config
 COPY controller.py /app/controller.py
 COPY nginx.conf /etc/nginx/http.d/default.conf
