@@ -9,21 +9,24 @@ version keeps the existing `url`, `resolution`, and `password` options and adds:
 
 - The virtual display follows the orientation of the connected browser (portrait
   or landscape).
+- The noVNC view scales the remote display to fit the available screen in either
+  orientation while preserving its aspect ratio.
 - Touch, mouse, keyboard, page-load, and page-resume activity wakes Chromium.
 - Chromium stops after 5 minutes without user interaction. The lightweight VNC
   service remains available so the next interaction can restart Chromium.
 
-The app's existing noVNC address on port `8080` is unchanged. Install this
-source in the Supervisor local-app repository directory for
-`local_havnc_rotation` and rebuild it through Home Assistant Apps; Supervisor
-handles the build.
+The app's existing noVNC address on port `8080` is unchanged. The add-on source
+is in `havnc_rotation/`; Home Assistant Supervisor builds it when installing or
+updating the app from this repository.
 
 ## Validation
 
-Run the controller unit tests with:
+Run the checks from the add-on source directory:
 
 ```sh
+cd havnc_rotation
 python3 -m unittest discover -s tests -v
+node tests/test_viewport_fit.js
 ```
 
 The device-orientation behavior requires a browser that reports viewport

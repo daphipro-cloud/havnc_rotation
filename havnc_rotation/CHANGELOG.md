@@ -1,5 +1,10 @@
 # Changelog
 
+# 1.1.2
+
+- Scale the noVNC canvas to fit the available viewport after orientation or
+  framebuffer changes.
+
 # 1.1.1
 
 - Replace Xvfb with TigerVNC Xvnc, which supports the requested screen rotation.

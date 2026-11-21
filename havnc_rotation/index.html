@@ -21,7 +21,7 @@
     <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
 
     <!-- Apple iOS Safari settings -->
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <meta name="apple-mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
     <!-- App Start Icon  -->
@@ -41,6 +41,40 @@
         src='http://getfirebug.com/releases/lite/1.2/firebug-lite-compressed.js'></script>
     -->
         <script src="include/util.js"></script>
+        <script src="viewport_fit.js"></script>
+    <style>
+        html, body {
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+        }
+
+        #noVNC_screen {
+            position: fixed;
+            top: 0;
+            right: 0;
+            bottom: 0;
+            left: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+            border-radius: 0;
+        }
+
+        #noVNC_status_bar {
+            position: absolute;
+            top: 0;
+            right: 0;
+            left: 0;
+            z-index: 1;
+        }
+
+        #noVNC_canvas {
+            display: block;
+            flex: none;
+        }
+    </style>
 </head>
 
 <body style="margin: 0px;">
@@ -95,6 +129,46 @@
             rfb.sendPassword($D('password_input').value);
             return false;
         }
+        var viewportFitScheduled = false;
+        function fitRemoteScreen() {
+            if (!rfb || !rfb.get_display || !rfb.get_mouse) {
+                return;
+            }
+
+            var display = rfb.get_display();
+            var canvas = $D('noVNC_canvas');
+            var framebufferWidth = display.get_width();
+            var framebufferHeight = display.get_height();
+            if (!framebufferWidth || !framebufferHeight) {
+                return;
+            }
+
+            var scale = HAVNCViewport.scaleToFit(
+                window.innerWidth,
+                window.innerHeight,
+                framebufferWidth,
+                framebufferHeight
+            );
+            canvas.style.width = Math.round(framebufferWidth * scale) + "px";
+            canvas.style.height = Math.round(framebufferHeight * scale) + "px";
+            rfb.get_mouse().set_scale(scale);
+        }
+        function scheduleRemoteScreenFit() {
+            if (viewportFitScheduled) {
+                return;
+            }
+
+            viewportFitScheduled = true;
+            var applyFit = function () {
+                viewportFitScheduled = false;
+                fitRemoteScreen();
+            };
+            if (window.requestAnimationFrame) {
+                window.requestAnimationFrame(applyFit);
+            } else {
+                window.setTimeout(applyFit, 0);
+            }
+        }
         function sendCtrlAltDel() {
             rfb.sendCtrlAltDel();
             return false;
@@ -128,6 +202,7 @@
             if (state === "normal") {
                 cad.disabled = false;
 		s.parentElement.parentElement.style.display = 'none';
+                scheduleRemoteScreenFit();
             } else {
 		s.parentElement.parentElement.style.display = 'block';
                 cad.disabled = true;
@@ -200,6 +275,7 @@
                            'local_cursor': WebUtil.getQueryVar('cursor', true),
                            'shared':       WebUtil.getQueryVar('shared', true),
                            'view_only':    WebUtil.getQueryVar('view_only', false),
+                           'onFBResize': scheduleRemoteScreenFit,
                            'onUpdateState':  updateState,
                            'onXvpInit':    xvpInit,
                            'onPasswordRequired':  passwordRequired});
@@ -239,9 +315,11 @@
                 sendActivity(true);
             });
             window.addEventListener("orientationchange", function () {
+                scheduleRemoteScreenFit();
                 sendActivity(true);
             });
             window.addEventListener("resize", function () {
+                scheduleRemoteScreenFit();
                 sendActivity(true);
             });
             document.addEventListener("visibilitychange", function () {
