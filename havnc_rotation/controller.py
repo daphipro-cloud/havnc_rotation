@@ -18,38 +18,30 @@ OPTIONS_PATH = Path("/data/options.json")
 CommandRunner = Callable[..., subprocess.CompletedProcess[str]]
 
 
-def orientation_from_resolution(resolution: object) -> str:
+def validate_resolution(resolution: object) -> str:
     if not isinstance(resolution, str):
         raise ValueError("The configured resolution must be a string")
 
-    match = re.fullmatch(r"([1-9]\d*)x([1-9]\d*)", resolution)
-    if match is None:
+    if re.fullmatch(r"([1-9]\d*)x([1-9]\d*)", resolution) is None:
         raise ValueError(f"Invalid configured resolution: {resolution!r}")
 
-    width, height = (int(value) for value in match.groups())
-    return "portrait" if height > width else "landscape"
+    return resolution
 
 
-def configured_orientation(options_path: Path = OPTIONS_PATH) -> str:
+def configured_resolution(options_path: Path = OPTIONS_PATH) -> str:
     with options_path.open(encoding="utf-8") as options_file:
         options = json.load(options_file)
     if not isinstance(options, dict):
         raise ValueError("The app options must be a JSON object")
-    return orientation_from_resolution(options.get("resolution", "768x1024"))
+    return validate_resolution(options.get("resolution", "768x1024"))
 
 
 class Controller:
     def __init__(
         self,
-        default_orientation: str,
         command_runner: CommandRunner = subprocess.run,
         clock: Callable[[], float] = time.monotonic,
     ) -> None:
-        if default_orientation not in {"portrait", "landscape"}:
-            raise ValueError(f"Unsupported default orientation: {default_orientation!r}")
-
-        self._default_orientation = default_orientation
-        self._orientation: str | None = None
         self._command_runner = command_runner
         self._clock = clock
         self._last_activity: float | None = None
@@ -60,52 +52,6 @@ class Controller:
             raise ValueError(f"Unsupported orientation: {orientation!r}")
 
         with self._lock:
-            if orientation != self._orientation:
-                rotation = (
-                    "normal"
-                    if orientation == self._default_orientation
-                    else "left"
-                )
-                output_result = self._command_runner(
-                    ["xrandr", "--query"],
-                    check=True,
-                    capture_output=True,
-                    text=True,
-                )
-                outputs = []
-                for line in output_result.stdout.splitlines():
-                    fields = line.split()
-                    if len(fields) >= 2 and fields[1] == "connected":
-                        outputs.append(fields[0])
-                if len(outputs) != 1:
-                    raise RuntimeError(
-                        "Could not identify the active XRandR output: "
-                        f"{output_result.stdout!r} {output_result.stderr!r}"
-                    )
-
-                try:
-                    self._command_runner(
-                        [
-                            "xrandr",
-                            "--output",
-                            outputs[0],
-                            "--rotate",
-                            rotation,
-                        ],
-                        check=True,
-                        capture_output=True,
-                        text=True,
-                    )
-                except subprocess.CalledProcessError as error:
-                    LOGGER.error(
-                        "Could not rotate XRandR output %s (exit %s): %s",
-                        outputs[0],
-                        error.returncode,
-                        (error.stderr or error.stdout).strip(),
-                    )
-                    raise
-                self._orientation = orientation
-
             if not self._browser_is_active():
                 self._command_runner(
                     [
@@ -256,7 +202,8 @@ def main() -> None:
         level=logging.INFO,
         format="%(asctime)s %(levelname)s %(name)s: %(message)s",
     )
-    controller = Controller(configured_orientation())
+    configured_resolution()
+    controller = Controller()
     threading.Thread(
         target=controller.run_idle_watchdog,
         name="idle-watchdog",

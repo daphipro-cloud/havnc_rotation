@@ -4,7 +4,7 @@ import threading
 import unittest
 from types import SimpleNamespace
 
-from controller import Controller, ControllerHTTPServer, orientation_from_resolution
+from controller import Controller, ControllerHTTPServer, validate_resolution
 
 
 class FakeCommandRunner:
@@ -14,11 +14,6 @@ class FakeCommandRunner:
 
     def __call__(self, command: list[str], **_kwargs: object) -> SimpleNamespace:
         self.calls.append(command)
-        if command == ["xrandr", "--query"]:
-            return SimpleNamespace(
-                stdout="Screen 0: minimum 1 x 1, current 768 x 1024\n"
-                "screen connected 768x1024+0+0\n"
-            )
         status_command = [
             "supervisorctl",
             "-c",
@@ -54,26 +49,21 @@ class ControllerTests(unittest.TestCase):
         self.now = 1_000.0
         self.runner = FakeCommandRunner()
         self.controller = Controller(
-            "portrait",
             command_runner=self.runner,
             clock=lambda: self.now,
         )
 
-    def test_resolution_sets_default_orientation(self) -> None:
-        self.assertEqual(orientation_from_resolution("768x1024"), "portrait")
-        self.assertEqual(orientation_from_resolution("1024x768"), "landscape")
+    def test_valid_resolution_is_preserved(self) -> None:
+        self.assertEqual(validate_resolution("768x1024"), "768x1024")
 
     def test_invalid_resolution_is_rejected(self) -> None:
         with self.assertRaises(ValueError):
-            orientation_from_resolution("0x768")
+            validate_resolution("0x768")
 
-    def test_orientation_change_rotates_virtual_display_and_starts_browser(self) -> None:
+    def test_activity_starts_browser_without_rotating_server_display(self) -> None:
         self.controller.record_activity("landscape")
 
-        self.assertIn(
-            ["xrandr", "--output", "screen", "--rotate", "left"],
-            self.runner.calls,
-        )
+        self.assertFalse(any(command[0] == "xrandr" for command in self.runner.calls))
         self.assertIn(
             [
                 "supervisorctl",
@@ -82,14 +72,6 @@ class ControllerTests(unittest.TestCase):
                 "start",
                 "Chromium",
             ],
-            self.runner.calls,
-        )
-
-    def test_initial_orientation_resets_virtual_display(self) -> None:
-        self.controller.record_activity("portrait")
-
-        self.assertIn(
-            ["xrandr", "--output", "screen", "--rotate", "normal"],
             self.runner.calls,
         )
 
@@ -136,7 +118,7 @@ class ControllerTests(unittest.TestCase):
         with self.assertRaises(ValueError):
             self.controller.record_activity("sideways")
 
-    def test_activity_endpoint_wakes_and_orients_browser(self) -> None:
+    def test_activity_endpoint_wakes_browser(self) -> None:
         server = ControllerHTTPServer(("127.0.0.1", 0), self.controller)
         server_thread = threading.Thread(target=server.serve_forever)
         server_thread.start()
@@ -152,10 +134,7 @@ class ControllerTests(unittest.TestCase):
             response = connection.getresponse()
 
             self.assertEqual(response.status, 204)
-            self.assertIn(
-                ["xrandr", "--output", "screen", "--rotate", "left"],
-                self.runner.calls,
-            )
+            self.assertFalse(any(command[0] == "xrandr" for command in self.runner.calls))
             self.assertIn(
                 [
                     "supervisorctl",

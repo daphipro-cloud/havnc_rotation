@@ -73,6 +73,7 @@
         #noVNC_canvas {
             display: block;
             flex: none;
+            transform-origin: center;
         }
     </style>
 </head>
@@ -130,6 +131,50 @@
             return false;
         }
         var viewportFitScheduled = false;
+        var canvasRotation = 0;
+        var mouseCoordinatesInstalled = false;
+        function installMouseCoordinateMapping() {
+            if (mouseCoordinatesInstalled) {
+                return;
+            }
+
+            var getEventPosition = Util.getEventPosition;
+            Util.getEventPosition = function (event, target, scale) {
+                var canvas = $D('noVNC_canvas');
+                if (target !== canvas || !canvasRotation) {
+                    return getEventPosition(event, target, scale);
+                }
+
+                var pointer = event && (event.changedTouches ? event.changedTouches[0] :
+                    event.touches ? event.touches[0] : event);
+                if (!pointer || !Number.isFinite(pointer.clientX) ||
+                    !Number.isFinite(pointer.clientY)) {
+                    return getEventPosition(event, target, scale);
+                }
+
+                var rect = canvas.getBoundingClientRect();
+                var position = HAVNCViewport.mapPointer(
+                    pointer.clientX,
+                    pointer.clientY,
+                    rect,
+                    canvas.width,
+                    canvas.height,
+                    canvasRotation
+                );
+                if (!position) {
+                    return getEventPosition(event, target, scale);
+                }
+
+                var mouseScale = Number.isFinite(scale) && scale > 0 ? scale : 1;
+                return {
+                    x: position.x,
+                    y: position.y,
+                    realx: position.x * mouseScale,
+                    realy: position.y * mouseScale
+                };
+            };
+            mouseCoordinatesInstalled = true;
+        }
         function fitRemoteScreen() {
             if (!rfb || !rfb.get_display || !rfb.get_mouse) {
                 return;
@@ -143,14 +188,22 @@
                 return;
             }
 
-            var scale = HAVNCViewport.scaleToFit(
+            canvasRotation = HAVNCViewport.rotationForViewport(
                 window.innerWidth,
                 window.innerHeight,
                 framebufferWidth,
                 framebufferHeight
             );
+            var scale = HAVNCViewport.scaleToFit(
+                window.innerWidth,
+                window.innerHeight,
+                framebufferWidth,
+                framebufferHeight,
+                canvasRotation !== 0
+            );
             canvas.style.width = Math.round(framebufferWidth * scale) + "px";
             canvas.style.height = Math.round(framebufferHeight * scale) + "px";
+            canvas.style.rotate = canvasRotation ? canvasRotation + "deg" : "none";
             rfb.get_mouse().set_scale(scale);
         }
         function scheduleRemoteScreenFit() {
@@ -228,6 +281,7 @@
         window.onscriptsload = function () {
             var host, port, password, path, token;
 
+            installMouseCoordinateMapping();
             $D('sendCtrlAltDelButton').style.display = "inline";
             $D('sendCtrlAltDelButton').onclick = sendCtrlAltDel;
             $D('xvpShutdownButton').onclick = xvpShutdown;

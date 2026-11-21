@@ -1,9 +1,15 @@
 # Changelog
 
+# 1.1.4
+
+- Rotate the noVNC canvas client-side when viewport and remote display
+  orientations differ, including transformed mouse and touch coordinates.
+- Wake Chromium without relying on unsupported XRandR output rotation.
+
 # 1.1.3
 
 - Include the viewport scaling script in the built image.
-- Restore Xvfb with x0vncserver because TigerVNC Xvnc cannot rotate the display.
+- Restore the previous Xvfb with x0vncserver display stack.
 
 # 1.1.2
 
