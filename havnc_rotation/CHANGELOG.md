@@ -1,5 +1,10 @@
 # Changelog
 
+# 1.1.10
+
+- Use the original Safari viewport dimensions and apply rotation through both
+  WebKit-prefixed style property spellings.
+
 # 1.1.9
 
 - Measure the actual noVNC viewport container and support WebKit-prefixed

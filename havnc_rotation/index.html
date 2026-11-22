@@ -41,7 +41,7 @@
         src='http://getfirebug.com/releases/lite/1.2/firebug-lite-compressed.js'></script>
     -->
         <script src="include/util.js"></script>
-        <script src="viewport_fit.js?v=1.1.9"></script>
+        <script src="viewport_fit.js?v=1.1.10"></script>
     <style>
         html, body {
             width: 100%;
@@ -187,11 +187,10 @@
             }
 
             var display = rfb.get_display();
-            var screen = $D('noVNC_screen');
             var canvas = $D('noVNC_canvas');
             var canvasWrapper = $D('noVNC_canvas_wrapper');
-            var viewportWidth = screen.clientWidth;
-            var viewportHeight = screen.clientHeight;
+            var viewportWidth = window.innerWidth;
+            var viewportHeight = window.innerHeight;
             var framebufferWidth = display.get_width();
             var framebufferHeight = display.get_height();
             if (!framebufferWidth || !framebufferHeight) {

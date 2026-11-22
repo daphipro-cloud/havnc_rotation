@@ -34,18 +34,29 @@
         }
 
         var style = element.style;
-        var transformProperty = typeof style.transform !== "undefined" ?
-            "transform" : typeof style.WebkitTransform !== "undefined" ?
-                "WebkitTransform" : null;
-        if (!transformProperty) {
-            throw new Error("CSS transforms are not supported");
+        var transform = rotation ? "rotate(" + rotation + "deg)" : "none";
+        var properties = [
+            ["transform", "transformOrigin"],
+            ["webkitTransform", "webkitTransformOrigin"],
+            ["WebkitTransform", "WebkitTransformOrigin"]
+        ];
+        var supported = false;
+
+        for (var index = 0; index < properties.length; index += 1) {
+            var transformProperty = properties[index][0];
+            var originProperty = properties[index][1];
+            if (typeof style[transformProperty] === "undefined") {
+                continue;
+            }
+
+            style[transformProperty] = transform;
+            style[originProperty] = "50% 50%";
+            supported = true;
         }
 
-        style[transformProperty] = rotation ? "rotate(" + rotation + "deg)" : "none";
-
-        var originProperty = transformProperty === "transform" ?
-            "transformOrigin" : "WebkitTransformOrigin";
-        style[originProperty] = "50% 50%";
+        if (!supported) {
+            throw new Error("CSS transforms are not supported");
+        }
     }
 
     function mapPointer(clientX, clientY, rect, framebufferWidth, framebufferHeight, rotation) {

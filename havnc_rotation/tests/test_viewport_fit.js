@@ -43,6 +43,11 @@ setElementRotation({style: webkitStyle}, -90);
 assert.equal(webkitStyle.WebkitTransform, "rotate(-90deg)");
 assert.equal(webkitStyle.WebkitTransformOrigin, "50% 50%");
 
+const lowercaseWebkitStyle = {webkitTransform: "", webkitTransformOrigin: ""};
+setElementRotation({style: lowercaseWebkitStyle}, -90);
+assert.equal(lowercaseWebkitStyle.webkitTransform, "rotate(-90deg)");
+assert.equal(lowercaseWebkitStyle.webkitTransformOrigin, "50% 50%");
+
 assert.throws(
     () => setElementRotation({style: {}}, -90),
     /CSS transforms are not supported/
