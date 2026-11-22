@@ -1,5 +1,10 @@
 # Changelog
 
+# 1.1.8
+
+- Rotate a wrapper around the noVNC canvas so viewport rotation does not
+  overwrite the canvas transform used internally by noVNC.
+
 # 1.1.7
 
 - Use the broadly supported CSS transform property for landscape rotation on

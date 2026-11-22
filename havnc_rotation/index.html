@@ -41,7 +41,7 @@
         src='http://getfirebug.com/releases/lite/1.2/firebug-lite-compressed.js'></script>
     -->
         <script src="include/util.js"></script>
-        <script src="viewport_fit.js?v=1.1.7"></script>
+        <script src="viewport_fit.js?v=1.1.8"></script>
     <style>
         html, body {
             width: 100%;
@@ -70,10 +70,14 @@
             z-index: 1;
         }
 
-        #noVNC_canvas {
+        #noVNC_canvas_wrapper {
             display: block;
             flex: none;
             transform-origin: 50% 50%;
+        }
+
+        #noVNC_canvas {
+            display: block;
         }
     </style>
 </head>
@@ -99,9 +103,11 @@
                             </div></td>
                 </tr></table>
             </div>
-            <canvas id="noVNC_canvas" width="640px" height="20px">
-                Canvas not supported.
-            </canvas>
+            <div id="noVNC_canvas_wrapper">
+                <canvas id="noVNC_canvas" width="640px" height="20px">
+                    Canvas not supported.
+                </canvas>
+            </div>
         </div>
 
         <script>
@@ -181,6 +187,7 @@
 
             var display = rfb.get_display();
             var canvas = $D('noVNC_canvas');
+            var canvasWrapper = $D('noVNC_canvas_wrapper');
             var framebufferWidth = display.get_width();
             var framebufferHeight = display.get_height();
             if (!framebufferWidth || !framebufferHeight) {
@@ -204,9 +211,13 @@
                 return;
             }
 
-            canvas.style.width = Math.round(canvasSize.width) + "px";
-            canvas.style.height = Math.round(canvasSize.height) + "px";
-            canvas.style.transform = canvasRotation ?
+            var canvasWidth = Math.round(canvasSize.width) + "px";
+            var canvasHeight = Math.round(canvasSize.height) + "px";
+            canvas.style.width = canvasWidth;
+            canvas.style.height = canvasHeight;
+            canvasWrapper.style.width = canvasWidth;
+            canvasWrapper.style.height = canvasHeight;
+            canvasWrapper.style.transform = canvasRotation ?
                 "rotate(" + canvasRotation + "deg)" : "none";
             rfb.get_mouse().set_scale(1);
         }
