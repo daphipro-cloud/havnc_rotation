@@ -1,5 +1,10 @@
 # Changelog
 
+# 1.1.6
+
+- Version the viewport fitting script URL and disable browser caching for the
+  main page and viewport fitting script.
+
 # 1.1.5
 
 - Fill the entire browser viewport in portrait and landscape, stretching the
