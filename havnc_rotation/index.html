@@ -41,7 +41,7 @@
         src='http://getfirebug.com/releases/lite/1.2/firebug-lite-compressed.js'></script>
     -->
         <script src="include/util.js"></script>
-        <script src="viewport_fit.js?v=1.1.6"></script>
+        <script src="viewport_fit.js?v=1.1.7"></script>
     <style>
         html, body {
             width: 100%;
@@ -73,7 +73,7 @@
         #noVNC_canvas {
             display: block;
             flex: none;
-            transform-origin: center;
+            transform-origin: 50% 50%;
         }
     </style>
 </head>
@@ -206,7 +206,8 @@
 
             canvas.style.width = Math.round(canvasSize.width) + "px";
             canvas.style.height = Math.round(canvasSize.height) + "px";
-            canvas.style.rotate = canvasRotation ? canvasRotation + "deg" : "none";
+            canvas.style.transform = canvasRotation ?
+                "rotate(" + canvasRotation + "deg)" : "none";
             rfb.get_mouse().set_scale(1);
         }
         function scheduleRemoteScreenFit() {

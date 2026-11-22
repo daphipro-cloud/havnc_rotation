@@ -1,5 +1,10 @@
 # Changelog
 
+# 1.1.7
+
+- Use the broadly supported CSS transform property for landscape rotation on
+  older iPad browsers.
+
 # 1.1.6
 
 - Version the viewport fitting script URL and disable browser caching for the
