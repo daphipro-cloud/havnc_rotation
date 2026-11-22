@@ -6,6 +6,23 @@
             Number.isFinite(height) && height > 0;
     }
 
+    function viewportDimensions(width, height, orientation) {
+        if (!validDimensions(width, height)) {
+            return null;
+        }
+
+        var viewportIsLandscape = width > height;
+        var absoluteOrientation = Math.abs(orientation);
+        var hasDeviceOrientation = absoluteOrientation === 0 ||
+            absoluteOrientation === 90 || absoluteOrientation === 180;
+        var deviceIsLandscape = absoluteOrientation === 90;
+        if (hasDeviceOrientation && viewportIsLandscape !== deviceIsLandscape) {
+            return {width: height, height: width};
+        }
+
+        return {width: width, height: height};
+    }
+
     function canvasSizeToFill(viewportWidth, viewportHeight, framebufferWidth, framebufferHeight, rotated) {
         if (!validDimensions(viewportWidth, viewportHeight) ||
             !validDimensions(framebufferWidth, framebufferHeight)) {
@@ -93,7 +110,8 @@
         canvasSizeToFill: canvasSizeToFill,
         mapPointer: mapPointer,
         rotationForViewport: rotationForViewport,
-        setElementRotation: setElementRotation
+        setElementRotation: setElementRotation,
+        viewportDimensions: viewportDimensions
     };
 
     if (typeof module !== "undefined" && module.exports) {
@@ -101,7 +119,8 @@
             canvasSizeToFill: canvasSizeToFill,
             mapPointer: mapPointer,
             rotationForViewport: rotationForViewport,
-            setElementRotation: setElementRotation
+            setElementRotation: setElementRotation,
+            viewportDimensions: viewportDimensions
         };
     }
 }(typeof window === "undefined" ? globalThis : window));

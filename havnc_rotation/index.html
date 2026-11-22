@@ -41,7 +41,7 @@
         src='http://getfirebug.com/releases/lite/1.2/firebug-lite-compressed.js'></script>
     -->
         <script src="include/util.js"></script>
-        <script src="viewport_fit.js?v=1.1.10"></script>
+        <script src="viewport_fit.js?v=1.1.11"></script>
     <style>
         html, body {
             width: 100%;
@@ -189,8 +189,16 @@
             var display = rfb.get_display();
             var canvas = $D('noVNC_canvas');
             var canvasWrapper = $D('noVNC_canvas_wrapper');
-            var viewportWidth = window.innerWidth;
-            var viewportHeight = window.innerHeight;
+            var viewportSize = HAVNCViewport.viewportDimensions(
+                window.innerWidth,
+                window.innerHeight,
+                window.orientation
+            );
+            if (!viewportSize) {
+                return;
+            }
+            var viewportWidth = viewportSize.width;
+            var viewportHeight = viewportSize.height;
             var framebufferWidth = display.get_width();
             var framebufferHeight = display.get_height();
             if (!framebufferWidth || !framebufferHeight) {
@@ -358,7 +366,13 @@
             var activityThrottleMs = 2000;
 
             function currentOrientation() {
-                return window.innerWidth > window.innerHeight ? "landscape" : "portrait";
+                var viewportSize = HAVNCViewport.viewportDimensions(
+                    window.innerWidth,
+                    window.innerHeight,
+                    window.orientation
+                );
+                return viewportSize && viewportSize.width > viewportSize.height ?
+                    "landscape" : "portrait";
             }
 
             function sendActivity(force) {
@@ -387,6 +401,7 @@
             });
             window.addEventListener("orientationchange", function () {
                 scheduleRemoteScreenFit();
+                window.setTimeout(scheduleRemoteScreenFit, 250);
                 sendActivity(true);
             });
             window.addEventListener("resize", function () {

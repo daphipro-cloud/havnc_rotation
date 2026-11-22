@@ -1,5 +1,10 @@
 # Changelog
 
+# 1.1.11
+
+- Reconcile Safari's viewport dimensions with the iPad's orientation and refit
+  after iOS orientation changes settle.
+
 # 1.1.10
 
 - Use the original Safari viewport dimensions and apply rotation through both

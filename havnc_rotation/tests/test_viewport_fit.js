@@ -5,8 +5,27 @@ const {
     canvasSizeToFill,
     mapPointer,
     rotationForViewport,
-    setElementRotation
+    setElementRotation,
+    viewportDimensions
 } = require("../viewport_fit");
+
+assert.deepEqual(
+    viewportDimensions(768, 1024, 90),
+    {width: 1024, height: 768}
+);
+assert.deepEqual(
+    viewportDimensions(768, 1024, -90),
+    {width: 1024, height: 768}
+);
+assert.deepEqual(
+    viewportDimensions(1024, 768, 0),
+    {width: 768, height: 1024}
+);
+assert.deepEqual(
+    viewportDimensions(768, 1024, undefined),
+    {width: 768, height: 1024}
+);
+assert.equal(viewportDimensions(0, 1024, 90), null);
 
 assert.equal(rotationForViewport(1194, 834, 768, 1024), -90);
 assert.equal(rotationForViewport(834, 1194, 768, 1024), 0);
