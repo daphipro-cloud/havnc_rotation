@@ -1,5 +1,10 @@
 # Changelog
 
+# 1.1.13
+
+- Fix Supervisor configuration parsing so Xvfb can start with the resolution
+  validation and dynamic framebuffer setup enabled.
+
 # 1.1.12
 
 - Resize the Xvfb display for the browser orientation so Chromium renders the

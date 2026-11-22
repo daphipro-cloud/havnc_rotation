@@ -1,7 +1,10 @@
+import configparser
 import http.client
 import json
+import subprocess
 import threading
 import unittest
+from pathlib import Path
 from types import SimpleNamespace
 
 from controller import (
@@ -82,6 +85,19 @@ class ControllerTests(unittest.TestCase):
 
     def test_valid_resolution_is_preserved(self) -> None:
         self.assertEqual(validate_resolution("768x1024"), "768x1024")
+
+    def test_xvfb_supervisor_command_parses_and_has_valid_shell_syntax(self) -> None:
+        supervisor_config = configparser.ConfigParser()
+        config_path = (
+            Path(__file__).parents[1]
+            / "config"
+            / "supervisor"
+            / "1-xvfb.conf"
+        )
+        supervisor_config.read(config_path)
+        command = supervisor_config.get("program:Xvfb", "command")
+
+        subprocess.run(["bash", "-n", "-c", command], check=True)
 
     def test_invalid_resolution_is_rejected(self) -> None:
         with self.assertRaises(ValueError):
