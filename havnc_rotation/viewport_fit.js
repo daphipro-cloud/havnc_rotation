@@ -6,24 +6,16 @@
             Number.isFinite(height) && height > 0;
     }
 
-    function scaleToFit(viewportWidth, viewportHeight, framebufferWidth, framebufferHeight, rotated) {
-        var dimensions = [viewportWidth, viewportHeight, framebufferWidth, framebufferHeight];
-        if (dimensions.some(function (value) {
-            return !Number.isFinite(value) || value <= 0;
-        })) {
-            return 1;
+    function canvasSizeToFill(viewportWidth, viewportHeight, framebufferWidth, framebufferHeight, rotated) {
+        if (!validDimensions(viewportWidth, viewportHeight) ||
+            !validDimensions(framebufferWidth, framebufferHeight)) {
+            return null;
         }
 
-        if (rotated) {
-            var swap = framebufferWidth;
-            framebufferWidth = framebufferHeight;
-            framebufferHeight = swap;
-        }
-
-        return Math.min(
-            viewportWidth / framebufferWidth,
-            viewportHeight / framebufferHeight
-        );
+        return {
+            width: rotated ? viewportHeight : viewportWidth,
+            height: rotated ? viewportWidth : viewportHeight
+        };
     }
 
     function rotationForViewport(viewportWidth, viewportHeight, framebufferWidth, framebufferHeight) {
@@ -67,16 +59,16 @@
     }
 
     root.HAVNCViewport = {
+        canvasSizeToFill: canvasSizeToFill,
         mapPointer: mapPointer,
-        rotationForViewport: rotationForViewport,
-        scaleToFit: scaleToFit
+        rotationForViewport: rotationForViewport
     };
 
     if (typeof module !== "undefined" && module.exports) {
         module.exports = {
+            canvasSizeToFill: canvasSizeToFill,
             mapPointer: mapPointer,
-            rotationForViewport: rotationForViewport,
-            scaleToFit: scaleToFit
+            rotationForViewport: rotationForViewport
         };
     }
 }(typeof window === "undefined" ? globalThis : window));

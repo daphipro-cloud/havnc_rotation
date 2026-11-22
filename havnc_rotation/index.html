@@ -141,7 +141,7 @@
             var getEventPosition = Util.getEventPosition;
             Util.getEventPosition = function (event, target, scale) {
                 var canvas = $D('noVNC_canvas');
-                if (target !== canvas || !canvasRotation) {
+                if (target !== canvas) {
                     return getEventPosition(event, target, scale);
                 }
 
@@ -165,12 +165,11 @@
                     return getEventPosition(event, target, scale);
                 }
 
-                var mouseScale = Number.isFinite(scale) && scale > 0 ? scale : 1;
                 return {
                     x: position.x,
                     y: position.y,
-                    realx: position.x * mouseScale,
-                    realy: position.y * mouseScale
+                    realx: position.x * canvas.offsetWidth / canvas.width,
+                    realy: position.y * canvas.offsetHeight / canvas.height
                 };
             };
             mouseCoordinatesInstalled = true;
@@ -194,17 +193,21 @@
                 framebufferWidth,
                 framebufferHeight
             );
-            var scale = HAVNCViewport.scaleToFit(
+            var canvasSize = HAVNCViewport.canvasSizeToFill(
                 window.innerWidth,
                 window.innerHeight,
                 framebufferWidth,
                 framebufferHeight,
                 canvasRotation !== 0
             );
-            canvas.style.width = Math.round(framebufferWidth * scale) + "px";
-            canvas.style.height = Math.round(framebufferHeight * scale) + "px";
+            if (!canvasSize) {
+                return;
+            }
+
+            canvas.style.width = Math.round(canvasSize.width) + "px";
+            canvas.style.height = Math.round(canvasSize.height) + "px";
             canvas.style.rotate = canvasRotation ? canvasRotation + "deg" : "none";
-            rfb.get_mouse().set_scale(scale);
+            rfb.get_mouse().set_scale(1);
         }
         function scheduleRemoteScreenFit() {
             if (viewportFitScheduled) {

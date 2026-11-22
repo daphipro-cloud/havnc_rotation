@@ -7,9 +7,10 @@ upstream commit `290c61766d1eaabfa889ae570371d7a7741d1b25`. The upstream BSD
 HAVNC serves a Home Assistant dashboard through Chromium and noVNC. This local
 version keeps the existing `url`, `resolution`, and `password` options and adds:
 
-- The noVNC canvas rotates and scales to fit the connected browser's portrait or
-  landscape viewport while preserving its aspect ratio.
-- Touch and mouse coordinates are mapped back to the rotated remote display.
+- The noVNC canvas rotates and fills the connected browser's portrait or
+  landscape viewport, stretching slightly when the aspect ratios differ.
+- Touch and mouse coordinates are mapped back to the rotated and stretched
+  remote display.
 - Touch, mouse, keyboard, page-load, and page-resume activity wakes Chromium.
 - Chromium stops after 5 minutes without user interaction. The lightweight VNC
   service remains available so the next interaction can restart Chromium.

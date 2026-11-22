@@ -1,5 +1,11 @@
 # Changelog
 
+# 1.1.5
+
+- Fill the entire browser viewport in portrait and landscape, stretching the
+  remote image slightly when its aspect ratio differs from the device.
+- Map mouse and touch input across the stretched canvas.
+
 # 1.1.4
 
 - Rotate the noVNC canvas client-side when viewport and remote display
