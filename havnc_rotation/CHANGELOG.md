@@ -1,5 +1,10 @@
 # Changelog
 
+# 1.1.15
+
+- Debounce viewport fitting and orientation updates to avoid intermediate
+  scaling and repeated framebuffer changes while the screen rotates.
+
 # 1.1.14
 
 - Include the XRandR command-line utility required by the orientation

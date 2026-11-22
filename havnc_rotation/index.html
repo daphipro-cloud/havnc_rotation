@@ -41,7 +41,7 @@
         src='http://getfirebug.com/releases/lite/1.2/firebug-lite-compressed.js'></script>
     -->
         <script src="include/util.js"></script>
-        <script src="viewport_fit.js?v=1.1.14"></script>
+        <script src="viewport_fit.js?v=1.1.15"></script>
     <style>
         html, body {
             width: 100%;
@@ -235,6 +235,10 @@
                 window.setTimeout(applyFit, 0);
             }
         }
+        var scheduleStableRemoteScreenFit = HAVNCViewport.debounce(
+            scheduleRemoteScreenFit,
+            300
+        );
         function sendCtrlAltDel() {
             rfb.sendCtrlAltDel();
             return false;
@@ -342,7 +346,7 @@
                            'local_cursor': WebUtil.getQueryVar('cursor', true),
                            'shared':       WebUtil.getQueryVar('shared', true),
                            'view_only':    WebUtil.getQueryVar('view_only', false),
-                           'onFBResize': scheduleRemoteScreenFit,
+                           'onFBResize': scheduleStableRemoteScreenFit,
                            'onUpdateState':  updateState,
                            'onXvpInit':    xvpInit,
                            'onPasswordRequired':  passwordRequired});
@@ -352,6 +356,9 @@
         (function () {
             var lastActivitySent = 0;
             var activityThrottleMs = 2000;
+            var scheduleLayoutActivity = HAVNCViewport.debounce(function () {
+                sendActivity(true);
+            }, 300);
 
             function currentOrientation() {
                 var viewportSize = HAVNCViewport.viewportDimensions(
@@ -388,13 +395,12 @@
                 sendActivity(true);
             });
             window.addEventListener("orientationchange", function () {
-                scheduleRemoteScreenFit();
-                window.setTimeout(scheduleRemoteScreenFit, 250);
-                sendActivity(true);
+                scheduleStableRemoteScreenFit();
+                scheduleLayoutActivity();
             });
             window.addEventListener("resize", function () {
-                scheduleRemoteScreenFit();
-                sendActivity(true);
+                scheduleStableRemoteScreenFit();
+                scheduleLayoutActivity();
             });
             document.addEventListener("visibilitychange", function () {
                 if (!document.hidden) {

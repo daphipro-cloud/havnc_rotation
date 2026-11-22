@@ -3,6 +3,7 @@
 const assert = require("node:assert/strict");
 const {
     canvasSizeToFill,
+    debounce,
     mapPointer,
     viewportDimensions
 } = require("../viewport_fit");
@@ -34,6 +35,29 @@ assert.deepEqual(
     {width: 834, height: 1194}
 );
 assert.equal(canvasSizeToFill(0, 800, 768, 1024), null);
+
+const timers = {
+    handles: [],
+    setTimeout(callback, delay) {
+        const handle = {callback, delay, cancelled: false};
+        this.handles.push(handle);
+        return handle;
+    },
+    clearTimeout(handle) {
+        handle.cancelled = true;
+    }
+};
+let debouncedCalls = 0;
+const scheduleDebouncedCall = debounce(() => {
+    debouncedCalls += 1;
+}, 300, timers);
+scheduleDebouncedCall();
+scheduleDebouncedCall();
+assert.equal(timers.handles[0].cancelled, true);
+assert.equal(timers.handles[1].delay, 300);
+timers.handles[1].callback();
+assert.equal(debouncedCalls, 1);
+
 assert.deepEqual(
     mapPointer(0, 0, {left: 0, top: 0, width: 200, height: 100}, 100, 200),
     {x: 0, y: 0}

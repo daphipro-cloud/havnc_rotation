@@ -52,8 +52,25 @@
         };
     }
 
+    function debounce(callback, delay, timers) {
+        var timerHost = timers || root;
+        var timer = null;
+
+        return function () {
+            if (timer !== null) {
+                timerHost.clearTimeout(timer);
+            }
+
+            timer = timerHost.setTimeout(function () {
+                timer = null;
+                callback();
+            }, delay);
+        };
+    }
+
     root.HAVNCViewport = {
         canvasSizeToFill: canvasSizeToFill,
+        debounce: debounce,
         mapPointer: mapPointer,
         viewportDimensions: viewportDimensions
     };
@@ -61,6 +78,7 @@
     if (typeof module !== "undefined" && module.exports) {
         module.exports = {
             canvasSizeToFill: canvasSizeToFill,
+            debounce: debounce,
             mapPointer: mapPointer,
             viewportDimensions: viewportDimensions
         };
