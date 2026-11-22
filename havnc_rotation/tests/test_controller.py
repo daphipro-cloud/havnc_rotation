@@ -99,6 +99,11 @@ class ControllerTests(unittest.TestCase):
 
         subprocess.run(["bash", "-n", "-c", command], check=True)
 
+    def test_xrandr_is_installed_in_the_addon_image(self) -> None:
+        dockerfile = Path(__file__).parents[1] / "Dockerfile"
+
+        self.assertIn("xrandr \\", dockerfile.read_text(encoding="utf-8"))
+
     def test_invalid_resolution_is_rejected(self) -> None:
         with self.assertRaises(ValueError):
             validate_resolution("0x768")

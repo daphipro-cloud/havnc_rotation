@@ -1,5 +1,10 @@
 # Changelog
 
+# 1.1.14
+
+- Include the XRandR command-line utility required by the orientation
+  controller.
+
 # 1.1.13
 
 - Fix Supervisor configuration parsing so Xvfb can start with the resolution
