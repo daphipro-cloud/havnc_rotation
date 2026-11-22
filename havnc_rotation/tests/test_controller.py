@@ -104,6 +104,20 @@ class ControllerTests(unittest.TestCase):
 
         self.assertIn("xrandr \\", dockerfile.read_text(encoding="utf-8"))
 
+    def test_vnc_frame_rate_is_capped_at_30_updates_per_second(self) -> None:
+        supervisor_config = configparser.ConfigParser()
+        config_path = (
+            Path(__file__).parents[1]
+            / "config"
+            / "supervisor"
+            / "3-vnc.conf"
+        )
+        supervisor_config.read(config_path)
+        command = supervisor_config.get("program:VNC", "command")
+
+        self.assertIn("-FrameRate=30", command)
+        subprocess.run(["bash", "-n", "-c", command], check=True)
+
     def test_invalid_resolution_is_rejected(self) -> None:
         with self.assertRaises(ValueError):
             validate_resolution("0x768")

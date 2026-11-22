@@ -1,5 +1,9 @@
 # Changelog
 
+# 1.1.16
+
+- Cap VNC framebuffer updates at 30 per second to reduce client decoding work.
+
 # 1.1.15
 
 - Debounce viewport fitting and orientation updates to avoid intermediate
