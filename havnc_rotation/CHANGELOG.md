@@ -1,5 +1,10 @@
 # Changelog
 
+# 1.1.12
+
+- Resize the Xvfb display for the browser orientation so Chromium renders the
+  dashboard natively instead of rotating a portrait capture.
+
 # 1.1.11
 
 - Reconcile Safari's viewport dimensions with the iPad's orientation and refit

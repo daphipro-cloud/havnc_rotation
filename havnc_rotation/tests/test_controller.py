@@ -4,12 +4,20 @@ import threading
 import unittest
 from types import SimpleNamespace
 
-from controller import Controller, ControllerHTTPServer, validate_resolution
+from controller import (
+    Controller,
+    ControllerHTTPServer,
+    mode_line_arguments,
+    resolution_for_orientation,
+    validate_resolution,
+)
 
 
 class FakeCommandRunner:
     def __init__(self) -> None:
         self.status = "STOPPED"
+        self.display_size = "1024x1024"
+        self.modes = {"1024x1024"}
         self.calls: list[list[str]] = []
 
     def __call__(self, command: list[str], **_kwargs: object) -> SimpleNamespace:
@@ -41,6 +49,25 @@ class FakeCommandRunner:
             self.status = "RUNNING"
         elif command == stop_command:
             self.status = "STOPPED"
+        elif command == ["xrandr", "--query"]:
+            mode_lines = "\n".join(f"   {mode} 60.00" for mode in sorted(self.modes))
+            return SimpleNamespace(
+                stdout=(
+                    f"Screen 0: minimum 1 x 1, current {self.display_size.replace('x', ' x ')}, "
+                    "maximum 1024 x 1024\n"
+                    f"screen connected {self.display_size}+0+0 0mm x 0mm\n"
+                    f"{mode_lines}\n"
+                )
+            )
+        elif command[:2] == ["xrandr", "--newmode"]:
+            return SimpleNamespace(stdout="")
+        elif command[:2] == ["xrandr", "--addmode"]:
+            self.modes.add(command[-1])
+            return SimpleNamespace(stdout="")
+        elif command[:2] == ["xrandr", "--output"]:
+            self.display_size = command[command.index("--mode") + 1].removeprefix(
+                "HAVNC-"
+            )
         return SimpleNamespace(stdout="")
 
 
@@ -60,18 +87,59 @@ class ControllerTests(unittest.TestCase):
         with self.assertRaises(ValueError):
             validate_resolution("0x768")
 
-    def test_activity_starts_browser_without_rotating_server_display(self) -> None:
+    def test_resolution_matches_requested_orientation(self) -> None:
+        self.assertEqual(
+            resolution_for_orientation("768x1024", "portrait"),
+            "768x1024",
+        )
+        self.assertEqual(
+            resolution_for_orientation("768x1024", "landscape"),
+            "1024x768",
+        )
+        self.assertEqual(
+            resolution_for_orientation("1024x768", "landscape"),
+            "1024x768",
+        )
+
+    def test_mode_line_defines_requested_dimensions(self) -> None:
+        mode = mode_line_arguments(1024, 768)
+
+        self.assertEqual(mode[0], "HAVNC-1024x768")
+        self.assertEqual(mode[2], "1024")
+        self.assertEqual(mode[6], "768")
+
+    def test_activity_sets_landscape_framebuffer_before_starting_browser(self) -> None:
         self.controller.record_activity("landscape")
 
-        self.assertFalse(any(command[0] == "xrandr" for command in self.runner.calls))
+        set_landscape = [
+            "xrandr",
+            "--output",
+            "screen",
+            "--mode",
+            "HAVNC-1024x768",
+        ]
+        start_browser = [
+            "supervisorctl",
+            "-c",
+            "/config/supervisord.conf",
+            "start",
+            "Chromium",
+        ]
+        self.assertLess(
+            self.runner.calls.index(set_landscape),
+            self.runner.calls.index(start_browser),
+        )
         self.assertIn(
-            [
-                "supervisorctl",
-                "-c",
-                "/config/supervisord.conf",
-                "start",
-                "Chromium",
-            ],
+            ["xrandr", "--newmode", *mode_line_arguments(1024, 768)],
+            self.runner.calls,
+        )
+
+    def test_activity_changes_framebuffer_when_orientation_changes(self) -> None:
+        self.controller.record_activity("landscape")
+        self.controller.record_activity("portrait")
+
+        self.assertIn(
+            ["xrandr", "--output", "screen", "--mode", "HAVNC-768x1024"],
             self.runner.calls,
         )
 
@@ -134,7 +202,10 @@ class ControllerTests(unittest.TestCase):
             response = connection.getresponse()
 
             self.assertEqual(response.status, 204)
-            self.assertFalse(any(command[0] == "xrandr" for command in self.runner.calls))
+            self.assertIn(
+                ["xrandr", "--output", "screen", "--mode", "HAVNC-1024x768"],
+                self.runner.calls,
+            )
             self.assertIn(
                 [
                     "supervisorctl",

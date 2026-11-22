@@ -41,7 +41,7 @@
         src='http://getfirebug.com/releases/lite/1.2/firebug-lite-compressed.js'></script>
     -->
         <script src="include/util.js"></script>
-        <script src="viewport_fit.js?v=1.1.11"></script>
+        <script src="viewport_fit.js?v=1.1.12"></script>
     <style>
         html, body {
             width: 100%;
@@ -73,8 +73,6 @@
         #noVNC_canvas_wrapper {
             display: block;
             flex: none;
-            -webkit-transform-origin: 50% 50%;
-            transform-origin: 50% 50%;
         }
 
         #noVNC_canvas {
@@ -138,7 +136,6 @@
             return false;
         }
         var viewportFitScheduled = false;
-        var canvasRotation = 0;
         var mouseCoordinatesInstalled = false;
         function installMouseCoordinateMapping() {
             if (mouseCoordinatesInstalled) {
@@ -165,8 +162,7 @@
                     pointer.clientY,
                     rect,
                     canvas.width,
-                    canvas.height,
-                    canvasRotation
+                    canvas.height
                 );
                 if (!position) {
                     return getEventPosition(event, target, scale);
@@ -205,18 +201,11 @@
                 return;
             }
 
-            canvasRotation = HAVNCViewport.rotationForViewport(
-                viewportWidth,
-                viewportHeight,
-                framebufferWidth,
-                framebufferHeight
-            );
             var canvasSize = HAVNCViewport.canvasSizeToFill(
                 viewportWidth,
                 viewportHeight,
                 framebufferWidth,
-                framebufferHeight,
-                canvasRotation !== 0
+                framebufferHeight
             );
             if (!canvasSize) {
                 return;
@@ -228,7 +217,6 @@
             canvas.style.height = canvasHeight;
             canvasWrapper.style.width = canvasWidth;
             canvasWrapper.style.height = canvasHeight;
-            HAVNCViewport.setElementRotation(canvasWrapper, canvasRotation);
             rfb.get_mouse().set_scale(1);
         }
         function scheduleRemoteScreenFit() {
