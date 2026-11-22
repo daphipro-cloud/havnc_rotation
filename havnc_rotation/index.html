@@ -41,7 +41,7 @@
         src='http://getfirebug.com/releases/lite/1.2/firebug-lite-compressed.js'></script>
     -->
         <script src="include/util.js"></script>
-        <script src="viewport_fit.js?v=1.1.8"></script>
+        <script src="viewport_fit.js?v=1.1.9"></script>
     <style>
         html, body {
             width: 100%;
@@ -73,6 +73,7 @@
         #noVNC_canvas_wrapper {
             display: block;
             flex: none;
+            -webkit-transform-origin: 50% 50%;
             transform-origin: 50% 50%;
         }
 
@@ -186,8 +187,11 @@
             }
 
             var display = rfb.get_display();
+            var screen = $D('noVNC_screen');
             var canvas = $D('noVNC_canvas');
             var canvasWrapper = $D('noVNC_canvas_wrapper');
+            var viewportWidth = screen.clientWidth;
+            var viewportHeight = screen.clientHeight;
             var framebufferWidth = display.get_width();
             var framebufferHeight = display.get_height();
             if (!framebufferWidth || !framebufferHeight) {
@@ -195,14 +199,14 @@
             }
 
             canvasRotation = HAVNCViewport.rotationForViewport(
-                window.innerWidth,
-                window.innerHeight,
+                viewportWidth,
+                viewportHeight,
                 framebufferWidth,
                 framebufferHeight
             );
             var canvasSize = HAVNCViewport.canvasSizeToFill(
-                window.innerWidth,
-                window.innerHeight,
+                viewportWidth,
+                viewportHeight,
                 framebufferWidth,
                 framebufferHeight,
                 canvasRotation !== 0
@@ -217,8 +221,7 @@
             canvas.style.height = canvasHeight;
             canvasWrapper.style.width = canvasWidth;
             canvasWrapper.style.height = canvasHeight;
-            canvasWrapper.style.transform = canvasRotation ?
-                "rotate(" + canvasRotation + "deg)" : "none";
+            HAVNCViewport.setElementRotation(canvasWrapper, canvasRotation);
             rfb.get_mouse().set_scale(1);
         }
         function scheduleRemoteScreenFit() {

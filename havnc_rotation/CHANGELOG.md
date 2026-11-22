@@ -1,5 +1,10 @@
 # Changelog
 
+# 1.1.9
+
+- Measure the actual noVNC viewport container and support WebKit-prefixed
+  transforms on older iPad browsers.
+
 # 1.1.8
 
 - Rotate a wrapper around the noVNC canvas so viewport rotation does not

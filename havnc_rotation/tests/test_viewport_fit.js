@@ -4,7 +4,8 @@ const assert = require("node:assert/strict");
 const {
     canvasSizeToFill,
     mapPointer,
-    rotationForViewport
+    rotationForViewport,
+    setElementRotation
 } = require("../viewport_fit");
 
 assert.equal(rotationForViewport(1194, 834, 768, 1024), -90);
@@ -31,5 +32,20 @@ assert.deepEqual(
     {x: 50, y: 100}
 );
 assert.equal(mapPointer(0, 0, {left: 0, top: 0, width: 0, height: 100}, 100, 200, -90), null);
+
+const standardStyle = {transform: "", transformOrigin: ""};
+setElementRotation({style: standardStyle}, -90);
+assert.equal(standardStyle.transform, "rotate(-90deg)");
+assert.equal(standardStyle.transformOrigin, "50% 50%");
+
+const webkitStyle = {WebkitTransform: "", WebkitTransformOrigin: ""};
+setElementRotation({style: webkitStyle}, -90);
+assert.equal(webkitStyle.WebkitTransform, "rotate(-90deg)");
+assert.equal(webkitStyle.WebkitTransformOrigin, "50% 50%");
+
+assert.throws(
+    () => setElementRotation({style: {}}, -90),
+    /CSS transforms are not supported/
+);
 
 console.log("Viewport fit tests passed.");

@@ -28,6 +28,26 @@
             (framebufferWidth > framebufferHeight) ? 0 : -90;
     }
 
+    function setElementRotation(element, rotation) {
+        if (!element || !element.style) {
+            throw new TypeError("A styled element is required");
+        }
+
+        var style = element.style;
+        var transformProperty = typeof style.transform !== "undefined" ?
+            "transform" : typeof style.WebkitTransform !== "undefined" ?
+                "WebkitTransform" : null;
+        if (!transformProperty) {
+            throw new Error("CSS transforms are not supported");
+        }
+
+        style[transformProperty] = rotation ? "rotate(" + rotation + "deg)" : "none";
+
+        var originProperty = transformProperty === "transform" ?
+            "transformOrigin" : "WebkitTransformOrigin";
+        style[originProperty] = "50% 50%";
+    }
+
     function mapPointer(clientX, clientY, rect, framebufferWidth, framebufferHeight, rotation) {
         if (!Number.isFinite(clientX) || !Number.isFinite(clientY) ||
             !rect || !Number.isFinite(rect.left) || !Number.isFinite(rect.top) ||
@@ -61,14 +81,16 @@
     root.HAVNCViewport = {
         canvasSizeToFill: canvasSizeToFill,
         mapPointer: mapPointer,
-        rotationForViewport: rotationForViewport
+        rotationForViewport: rotationForViewport,
+        setElementRotation: setElementRotation
     };
 
     if (typeof module !== "undefined" && module.exports) {
         module.exports = {
             canvasSizeToFill: canvasSizeToFill,
             mapPointer: mapPointer,
-            rotationForViewport: rotationForViewport
+            rotationForViewport: rotationForViewport,
+            setElementRotation: setElementRotation
         };
     }
 }(typeof window === "undefined" ? globalThis : window));
